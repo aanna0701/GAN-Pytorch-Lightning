@@ -1,4 +1,4 @@
-from .data import *
+from .datasets import *
 
 DATASET = {
     'MNIST': MNISTDataModule,
