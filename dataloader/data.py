@@ -4,6 +4,7 @@ from torchvision import transforms
 from torchvision import datasets
 from torch.utils.data import DataLoader, random_split
 
+
 class MNISTDataModule(LightningDataModule):
     def __init__(
         self,

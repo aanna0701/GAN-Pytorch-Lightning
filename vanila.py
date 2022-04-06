@@ -1,4 +1,4 @@
-from dataloader.data import MNISTDataModule, CIFAR10DataModule
+from dataloader.call_data import DATASET
 from models.vanila import GAN
 from pytorch_lightning import Trainer
 import argparse
@@ -39,7 +39,7 @@ def main():
     for k in conf: print(f"{k}: {conf[k]}")
     print("*"*30, 'CONFIG', "*"*30)
 
-    dm = MNISTDataModule() if conf.dataset == 'MNIST' else CIFAR10DataModule()
+    dm = DATASET[conf.dataset]()
     model = GAN(conf)
 
     trainer = Trainer(gpus=1, max_epochs=conf.epoch, enable_progress_bar = False)
