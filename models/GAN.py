@@ -1,9 +1,8 @@
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-import os
-import time
 import torchvision
+from utils.logger import print_log
 
 class AverageMeter(object):
     def __init__(self):
@@ -19,21 +18,18 @@ class AverageMeter(object):
         self.cnt += n
         self.avg = self.sum / self.cnt
 
-class GAN(pl.LightningModule):
+class MODEL(pl.LightningModule):
     global G_LOSS, D_LOSS
     G_LOSS = AverageMeter()
     D_LOSS = AverageMeter()
     
-    def __init__(self, config):
+    def __init__(self, config, save_dir, logger):
         super().__init__()
         self.conf = config
         self.img_size = config.input_shape[0] * config.input_shape[1] * config.input_shape[2]
-        # now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec
-        now = time.localtime()
-        self.save_dir = os.path.join(self.conf.save_path, self.conf.dataset, f'{now.tm_mon}-{now.tm_mday}_{now.tm_hour}-{now.tm_min}-{now.tm_sec}')
-        if not os.path.isdir(self.save_dir):
-            os.makedirs(self.save_dir, exist_ok=True)
-        
+        self.save_dir = save_dir
+        self.print_log = logger
+
         self.Discriminator = nn.Sequential(
             nn.Linear(self.img_size, 512), 
             nn.LeakyReLU(0.2, inplace=True),
@@ -101,13 +97,14 @@ class GAN(pl.LightningModule):
                     f'discriminator loss: {D_LOSS.avg:.4f}',
                     f'generator loss: {G_LOSS.avg:.4f}'
                 ])
-        print(msg)
+        print_log(self.print_log, msg)
         
         D_LOSS.reset()
         G_LOSS.reset()
         
         if self.epoch % self.conf.save_interval == 0:
-            save_path = os.path.join(self.save_dir, f'epoch-{self.epoch}.png')
+            save_path = self.save_dir / 'images'
+            save_path = str(save_path / f'epoch-{self.epoch}.png')
             gen_img = self.conf.denormalize(self(self.z))
             torchvision.utils.save_image(gen_img.data[:25], save_path, nrow=5, normalize=True)
 

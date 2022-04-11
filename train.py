@@ -1,9 +1,16 @@
 from dataloader.call_data import DATASET
-from models.vanila import GAN
 from pytorch_lightning import Trainer
 import argparse
 import sys
+import importlib
+from utils.logger import print_log
+import time
+from pathlib import Path
 
+now = time.localtime()
+SAVE_DIR = Path('save') / f'{now.tm_mon}-{now.tm_mday}_{now.tm_hour}h{now.tm_min}m-{now.tm_sec}s'
+SAVE_DIR.mkdir(parents=True, exist_ok=True)
+LOGGER = str(SAVE_DIR / 'log.txt')
 # =========================================== Arguments ===========================================
 
 def parse_args():
@@ -28,19 +35,22 @@ def main():
     args = parse_args()
 
     # --------------------------------------------
-    # import config file
-    # --------------------------------------------
-    sys.path.append("./config")
-    config = __import__(args.config)
+    # train configurations
+    # --------------------------------------------   
+    config = importlib.import_module(f"configs.{args.config}")
     global conf
-    conf = config.config
+    conf = config.conf
 
-    print("*"*30, 'CONFIG', "*"*30)
-    for k in conf: print(f"{k}: {conf[k]}")
-    print("*"*30, 'CONFIG', "*"*30)
+    msg_conf = "*"*30 + ' CONFIG ' + "*"*30 + "\n"
+    for k in conf: msg_conf += f"{k}: {conf[k]}" + "\n"
+    msg_conf += "*"*30 + ' CONFIG ' + "*"*30  
+    print_log(LOGGER, msg_conf)
+    del msg_conf
 
     dm = DATASET[conf.dataset]()
-    model = GAN(conf)
+    print(conf.network)
+    model_module = importlib.import_module(f"models.{conf.network}")
+    model = model_module.MODEL(conf, SAVE_DIR, LOGGER)
 
     trainer = Trainer(gpus=1, max_epochs=conf.epoch, enable_progress_bar = False)
     trainer.fit(model, dm)
