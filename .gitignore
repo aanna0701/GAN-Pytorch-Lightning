@@ -4,3 +4,4 @@ MNIST/
 cifar*
 save/
 *.ipynb
+*.png

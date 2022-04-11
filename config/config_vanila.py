@@ -11,7 +11,7 @@ GAN model 학습에 사용되는 결과 이미지 저장 경로, 에포크 수, 
 config = edict()
 config.data_path = 'data/'
 config.save_path = 'save/'
-config.dataset = 'MNIST'
+config.dataset = 'CIFAR10'
 config.epoch = 500
 config.log_interval = 100
 config.save_interval = 50

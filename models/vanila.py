@@ -73,7 +73,9 @@ class GAN(pl.LightningModule):
         img = img.view(img.size(0), -1)
         self.z = torch.rand(img.size(0), self.conf.latent_dim).type_as(img)
         if optimizer_idx == 0:
-            loss = self.criterion(self.Discriminator(img), torch.ones(img.size(0), 1).type_as(img)) + self.criterion(self.Discriminator(self.Generator(self.z)), torch.zeros(img.size(0), 1).type_as(img))
+            ####### Generator로 gradient가 흐르지 않도록 detach !!!!
+            loss = self.criterion(self.Discriminator(img), torch.ones(img.size(0), 1).type_as(img)) + \
+            self.criterion(self.Discriminator(self.Generator(self.z).detach()), torch.zeros(img.size(0), 1).type_as(img))
             loss = loss * 0.5
             D_LOSS.update(loss)
             # Logging to TensorBoard by default
